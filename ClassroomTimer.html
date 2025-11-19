@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Czas lekcji</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #e9ecf1;
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.settings {
+    max-width: 900px;
+    margin: 0 auto 35px;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.25);
+}
+
+.settings-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.input-group {
+    margin-bottom: 10px;
+    width: 250px;
+}
+
+label {
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 7px;
+    margin-top: 4px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+    transition: background-color 0.3s;
+}
+
+button {
+    padding: 10px 15px;
+    background: #3498db;
+    border: none;
+    color: white;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.2);
+}
+
+#startButton {
+    background: #a6a65b;
+    margin-left: 20px;
+    min-width: 100px;
+    margin-bottom: 10px;
+}
+
+.presets {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.box {
+    background: white;
+    padding: 20px;
+    width: 30%;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    transition: 0.3s;
+    border-top: 6px solid #6c8cd5;
+    border-right: 1px solid #6c8cd578;
+    border-left: 1px solid #6c8cd578;
+    border-bottom: 1px solid #6c8cd578;
+    position: relative;
+}
+
+h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    font-weight: normal;
+}
+
+.timer-info {
+    margin-top: 15px;
+    font-size: 16px;
+    background: #f8f9fc;
+    padding: 12px;
+    min-height: 80px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.progress-container {
+    width: 100%;
+    height: 12px;
+    background: #ddd;
+    border-radius: 6px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 6px;
+    transition: width 0.3s linear, background 0.3s linear;
+}
+
+.bottom-times {
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    background: #eef0f5;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.bottom-times span {
+    font-weight: lighter;
+}
+
+.presets button.highlighted {
+    background: #005d9b !important;
+}
+
+/* animacja inputów przy zmianie */
+input.animate-change {
+    animation: highlightInput 0.6s ease-in-out;
+}
+
+label.inline-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@keyframes highlightInput {
+    0%   { background-color: #ffff99; }
+    100% { background-color: white; }
+}
+</style>
+</head>
+<body>
+
+<h1>Czas lekcji</h1>
+
+<div class="settings">
+    <h2>Ustawienia</h2>
+    <div class="settings-row">
+        <div class="input-group">
+            <label>Godzina startu</label>
+            <input type="time" id="startTime">
+        </div>
+        <div class="input-group">
+            <label>Czas trwania części (minuty)</label>
+            <input type="number" id="part1Duration" value="45">
+        </div>
+        <div class="input-group">
+            <label>Czas trwania przerwy (minuty)</label>
+            <input type="number" id="breakDuration" value="5">
+        </div>
+        <button id="startButton" onclick="startTimers()">Odliczaj</button>
+    </div>
+
+    <div class="presets">
+        <button onclick="loadPreset(this)" data-starttime="" data-part="1" data-break="1" data-description=""></button>
+        <button onclick="loadPreset(this)" data-starttime="16:40" data-part="30" data-break="5" data-description="Czwartek"></button>
+        <button onclick="loadPreset(this)" data-starttime="17:40" data-part="30" data-break="5" data-description="Test"></button>
+    </div>
+    <div style="margin-top:15px;">
+        <label class="inline-label" style="width: 40%;">
+		    Powiadomienia
+            <input type="checkbox" id="enableNotifications">
+        </label>
+    </div>
+</div>
+
+<div class="container">
+    <div class="box" id="box1">
+        <h2>Część 1</h2>
+        <div class="timer-info" id="part1Info"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="part1Progress"></div>
+        </div>
+        <div class="bottom-times" id="part1Times"></div>
+    </div>
+    <div class="box" id="box2">
+        <h2>Przerwa</h2>
+        <div class="timer-info" id="breakInfo"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="breakProgress"></div>
+        </div>
+        <div class="bottom-times" id="breakTimes"></div>
+    </div>
+    <div class="box" id="box3">
+        <h2>Część 2</h2>
+        <div class="timer-info" id="part2Info"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="part2Progress"></div>
+        </div>
+        <div class="bottom-times" id="part2Times"></div>
+    </div>
+</div>
+
+<script>
+let interval;
+let postEndInterval = null;
+const COLORS = { default: "#6c8cd5", waiting: "#b5b5b5", active: "#2ecc71", finished: "#2e2f31" };
+let part2EndTime = null;
+let notifiedBoxes = [false,false,false,false];
+
+function formatTime(ms) {
+    if(ms<0) ms=0;
+    let sec=Math.floor(ms/1000);
+    let min=Math.floor(sec/60);
+    return min + "m " + (sec%60) + "s";
+}
+
+function sendNotification(title, body){
+    if(!document.getElementById("enableNotifications").checked) return;
+    if(!("Notification" in window)) return;
+    if(Notification.permission === "granted"){
+        new Notification(title, { body });
+    } else if(Notification.permission !== "denied"){
+        Notification.requestPermission().then(p => { if(p==="granted") new Notification(title,{body}); });
+    }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".presets button").forEach(btn => {
+        const desc = btn.dataset.description;
+        const start = btn.dataset.starttime || "Teraz";
+        const part = btn.dataset.part;
+        const br = btn.dataset.break;
+        btn.textContent = `${desc} ${start} (${part}+${br})`;
+    });
+    checkPresetsHighlight();
+    setInterval(checkPresetsHighlight, 60000);
+	
+	var inputs = document.getElementsByTagName('input');
+
+	for (var i=0; i<inputs.length; i++)  {
+	  if (inputs[i].type == 'checkbox')   {
+		inputs[i].checked = false;
+	  }
+	}
+	
+});
+
+function checkPresetsHighlight() {
+    const now = new Date();
+    document.querySelectorAll(".presets button").forEach(btn => {
+        let start = btn.dataset.starttime;
+        if (!start) return;
+        const [h,m] = start.split(":").map(Number);
+        const presetTime = new Date();
+        presetTime.setHours(h,m,0,0);
+        const diff = Math.abs(now - presetTime);
+        btn.classList.toggle("highlighted", diff <= 45*60*1000);
+    });
+	
+}
+
+function loadPreset(button) {
+    let start = button.dataset.starttime;
+    let part = button.dataset.part;
+    let br = button.dataset.break;
+    if(!start){
+        let now = new Date();
+        start = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+    }
+    document.getElementById("startTime").value = start;
+    document.getElementById("part1Duration").value = part;
+    document.getElementById("breakDuration").value = br;
+    [ "startTime", "part1Duration", "breakDuration"].forEach(id=>{
+        const el=document.getElementById(id);
+        el.classList.remove("animate-change");
+        void el.offsetWidth;
+        el.classList.add("animate-change");
+    });
+}
+
+function startTimers() {
+    if(interval) clearInterval(interval);
+    if(postEndInterval) clearInterval(postEndInterval);
+    notifiedBoxes = [false,false,false,false];
+	let halfNotified = [false, false];
+
+    const startInput = document.getElementById("startTime").value;
+    const part1Min = parseInt(document.getElementById("part1Duration").value);
+    const breakMin = parseInt(document.getElementById("breakDuration").value);
+    if(!startInput){ alert("Podaj godzinę startu"); return; }
+
+    const [h,m] = startInput.split(":").map(Number);
+    const startTime = new Date(); startTime.setHours(h,m,0,0);
+    const part1End = new Date(startTime.getTime() + part1Min*60000);
+    const breakEnd = new Date(part1End.getTime() + breakMin*60000);
+    const part2End = new Date(breakEnd.getTime() + part1Min*60000);
+    part2EndTime = part2End;
+
+    displayTimes("part1Times", startTime, part1End);
+    displayTimes("breakTimes", part1End, breakEnd);
+    displayTimes("part2Times", breakEnd, part2End);
+
+    interval = setInterval(()=>{
+        const now = new Date();
+        let nextBox = null;
+        if(now<startTime) nextBox="box1";
+        else if(now>part1End && now<breakEnd) nextBox="box2";
+        else if(now>breakEnd && now<part2End) nextBox="box3";
+
+        updateBox(now,startTime,part1End,"part1Info","box1","part1Progress",nextBox==="box1");
+        updateBox(now,part1End,breakEnd,"breakInfo","box2","breakProgress",nextBox==="box2");
+        updateBox(now,breakEnd,part2End,"part2Info","box3","part2Progress",nextBox==="box3");
+
+        // powiadomienia dynamiczne
+        if(!notifiedBoxes[0] && now >= startTime && now < part1End){
+            sendNotification("Zaczynamy - Część 1", `Czas trwania: ${part1Min} min. (do ${part1End.getHours().toString().padStart(2,'0')}:${part1End.getMinutes().toString().padStart(2,'0')})`);
+            notifiedBoxes[0]=true;
+        }
+        if(!notifiedBoxes[1] && now >= part1End && now < breakEnd){
+            sendNotification("Przerwa!", `Wracamy za ${breakMin} min. (o ${breakEnd.getHours().toString().padStart(2,'0')}:${breakEnd.getMinutes().toString().padStart(2,'0')})`);
+            notifiedBoxes[1]=true;
+        }
+        if(!notifiedBoxes[2] && now >= breakEnd && now < part2End){
+            sendNotification("Wracamy - Część 2", `Czas trwania: ${part1Min} min. (do ${part2End.getHours().toString().padStart(2,'0')}:${part2End.getMinutes().toString().padStart(2,'0')})`);
+            notifiedBoxes[2]=true;
+        }
+        if(now>part2End && !notifiedBoxes[3]){
+            sendNotification("Koniec zajęć!", `Minęła ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`);
+            notifiedBoxes[3]=true;
+            clearInterval(interval);
+        }
+
+		// Powiadomienia o połowie czasu z liczbą minut pozostałych
+		const part1HalfTime = new Date(startTime.getTime() + (part1End-startTime)/2);
+		const part2HalfTime = new Date(breakEnd.getTime() + (part2End-breakEnd)/2);
+
+		if(!halfNotified[0] && now >= part1HalfTime && now < part1End){
+			const remaining = Math.ceil((part1End-now)/60000);
+			sendNotification("Połowa części 1", `Pozostało ${remaining} min.`);
+			halfNotified[0] = true;
+		}
+		if(!halfNotified[1] && now >= part2HalfTime && now < part2End){
+			const remaining = Math.ceil((part2End-now)/60000);
+			sendNotification("Połowa części 2", `Pozostało ${remaining} min.`);
+			halfNotified[1] = true;
+		}
+
+
+    },300);
+
+    postEndInterval = setInterval(()=>{
+        const now = new Date();
+        if(now>part2EndTime){
+            const secondsSinceEnd=Math.floor((now-part2EndTime)/1000);
+            document.getElementById("part2Info").innerHTML = `Zakończono<br><span style="color:red;">(${formatTime(secondsSinceEnd*1000)} temu)</span>`;
+        }
+    },300);
+}
+
+function displayTimes(id,start,end){
+    document.getElementById(id).innerHTML =
+        `<span>${start.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>`+
+        `<span>${end.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>`;
+}
+
+function updateBox(now,start,end,infoId,boxId,progressId,showUntilStart){
+    const info=document.getElementById(infoId);
+    const box=document.getElementById(boxId);
+    const progress=document.getElementById(progressId);
+    const container=progress.parentElement;
+
+    let percent=0;
+    let state="default";
+    if(now<start) state="waiting";
+    else if(now>=start && now<=end) state="active";
+    else if(now>end) state="finished";
+
+    const color=COLORS[state];
+    box.style.borderColor=color;
+    progress.style.background=color;
+
+    if(state==="active"){
+        box.style.boxShadow=`0 0 40px ${color}cc`;
+        box.style.transform="scale(1.07)";
+        container.style.border=`1px solid ${color}80`;
+    } else {
+        box.style.boxShadow="none";
+        box.style.transform="scale(1)";
+        container.style.border="none";
+    }
+
+    if(state==="active"){
+        percent=((now-start)/(end-start))*100;
+        info.innerHTML=`Do końca: <span>${formatTime(end-now)}</span>`;
+    } else if(state==="waiting"){
+        percent=0;
+        info.innerHTML = showUntilStart ? `Do startu: <span>${formatTime(start-now)}</span>` : "";
+    } else if(state==="finished"){
+        percent=100;
+        if(boxId!=="box3") info.innerHTML="Zakończono";
+    }
+
+    progress.style.width = percent+"%";
+}
+</script>
+</body>
+</html>
