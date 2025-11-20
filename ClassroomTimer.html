@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Czas lekcji</title>
+<title>Czas zajęć</title>
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -109,7 +109,7 @@ h2 {
 
 .timer-info {
     margin-top: 15px;
-    font-size: 16px;
+    font-size: 19px;
     background: #f8f9fc;
     padding: 12px;
     min-height: 80px;
@@ -163,6 +163,12 @@ label.inline-label {
     gap: 5px;
 }
 
+div.inline-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 @keyframes highlightInput {
     0%   { background-color: #ffff99; }
     100% { background-color: white; }
@@ -171,9 +177,9 @@ label.inline-label {
 </head>
 <body>
 
-<h1>Czas lekcji</h1>
+<h1 onclick="showSettings()">Czas zajęć</h1>
 
-<div class="settings">
+<div class="settings" id="settingsField">
     <h2>Ustawienia</h2>
     <div class="settings-row">
         <div class="input-group">
@@ -197,10 +203,12 @@ label.inline-label {
         <button onclick="loadPreset(this)" data-starttime="17:40" data-part="30" data-break="5" data-description="Test"></button>
     </div>
     <div style="margin-top:15px;">
-        <label class="inline-label" style="width: 40%;">
+        <div class="inline-label" style="width: 40%;">
 		    Powiadomienia
             <input type="checkbox" id="enableNotifications">
-        </label>
+			
+			<button id="hideButton" onclick="hideSettings()" style="background: #92b2c8;">Schowaj</button>
+        </div>
     </div>
 </div>
 
@@ -393,6 +401,22 @@ function displayTimes(id,start,end){
         `<span>${start.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>`+
         `<span>${end.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>`;
 }
+
+let visibleSettings = true;
+
+function hideSettings() {
+	document.getElementById("settingsField").style.display = "none";
+	visibleSettings = false;
+}
+
+function showSettings() {
+    if (!visibleSettings) {
+		visibleSettings = true;
+		document.getElementById("settingsField").style.display = "";
+	}
+}
+
+
 
 function updateBox(now,start,end,infoId,boxId,progressId,showUntilStart){
     const info=document.getElementById(infoId);
